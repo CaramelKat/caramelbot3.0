@@ -1,0 +1,19 @@
+{
+  "name": "caramelbot3.0",
+  "version": "3.0.0",
+  "description": "Fuck you! Now in JavaScript:tm:",
+  "main": "./server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.6.0",
+    "slash-create": "^5.0.3"
+  }
+}
