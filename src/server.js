@@ -24,7 +24,6 @@ creator.withServer(
     ]).syncCommands();
 
 bot.on('messageCreate', message => {
-    console.log(message.content);
     // Ignore bot messages
     if (message.author.bot) return;
 });
@@ -53,7 +52,6 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
-    console.log(message.content)
     for (let server of servers.listeners) {
         if(message.id === server.messageID) {
             for (let reaction of server.reactions) {
