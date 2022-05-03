@@ -34,9 +34,14 @@ async function getServers() {
     return SERVER.find();
 }
 
+async function getServerByID(serverID) {
+    verifyConnected();
+    return SERVER.findOne({ guildID: serverID })
+}
 
 module.exports = {
     connect,
     getStar,
-    getServers
+    getServers,
+    getServerByID
 };
