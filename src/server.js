@@ -1,7 +1,8 @@
 const { SlashCreator, GatewayServer } = require('slash-create');
 const { Client, Intents, MessageEmbed, WebhookClient } = require('discord.js');
 const config = require('./config.json');
-const servers = require('./servers.json');
+const { STARBOARD } = require('./models/starboards');
+const db = require('./database');
 
 const bot = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
@@ -32,8 +33,8 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
-
-    for (let server of servers.listeners) {
+    let servers = await db.getServers();
+    for (let server of servers) {
         if(message.id === server.messageID) {
             for (let reaction of server.reactions) {
                 if(reaction_orig.emoji.name === reaction.emoji) {
@@ -41,6 +42,49 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
                     const guildUser = await message.guild.members.fetch(user.id);
                     await guildUser.roles.add(role);
                     console.log(`Added ${user.tag} to ${role.name}`);
+                }
+            }
+        }
+        else if(server.starboard_channel !== '' && (server.guildID === message.guild.id)) {
+            const reactions = message.reactions.cache;
+            if(reaction_orig.emoji.name === '⭐') {
+                let star = await db.getStar(message.id, message.guild.id);
+                if(star) {
+                    star.reaction_count = reactions.get('⭐').count;
+                    star.update();
+                    bot.channels.cache.get(server.starboard_channel).messages.fetch(star.new_message_id).then(msg => {
+                        let embed = new MessageEmbed()
+                            .setColor('#ffd23c')
+                            .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL(), url: message.url })
+                            .setDescription(message.content || '')
+                            .setTimestamp(message.createdAt)
+                            .setFooter({ text: `⭐: ${ reactions.get('⭐').count }` });
+                        let messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null
+                        if (messageAttachment) embed.setImage(messageAttachment)
+                        msg.edit({ embeds: [embed] });
+                    }).catch(err => {
+                        console.error(err);
+                    });
+                }
+                else if(reactions.get('⭐').count === server.starboard_count) {
+                    let embed = new MessageEmbed()
+                        .setColor('#ffd23c')
+                        .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL(), url: message.url })
+                        .setDescription(message.content || '')
+                        .setTimestamp(message.createdAt)
+                        .setFooter({ text: `⭐: ${ reactions.get('⭐').count }` });
+                    let messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null
+                    if (messageAttachment) embed.setImage(messageAttachment)
+
+                    let sent = await bot.channels.cache.get(server.starboard_channel).send({ embeds: [embed] });
+                    let star = {
+                        server_id: message.guild.id,
+                        original_message_id: message.id,
+                        new_message_id: sent.id,
+                        reaction_count: reactions.get('⭐').count,
+                    }
+                    const newStar = new STARBOARD(star);
+                    newStar.save();
                 }
             }
         }
@@ -52,7 +96,8 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
-    for (let server of servers.listeners) {
+    let servers = await db.getServers();
+    for (let server of servers) {
         if(message.id === server.messageID) {
             for (let reaction of server.reactions) {
                 if(reaction_orig.emoji.name === reaction.emoji) {
@@ -60,6 +105,30 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
                     const guildUser = await message.guild.members.fetch(user.id);
                     await guildUser.roles.remove(role);
                     console.log(`Removed ${user.tag} from ${role.name}`);
+                }
+            }
+        }
+        else if(server.starboard_channel !== '' && (server.guildID === message.guild.id)) {
+            const reactions = message.reactions.cache;
+            if(reaction_orig.emoji.name === '⭐') {
+                let star = await db.getStar(message.id, message.guild.id);
+                if(star) {
+                    star.reaction_count = star.reaction_count - 1;
+                    star.update();
+                    bot.channels.cache.get(server.starboard_channel).messages.fetch(star.new_message_id).then(msg => {
+                        let embed = new MessageEmbed()
+                            .setColor('#ffd23c')
+                            .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL(), url: message.url })
+                            .setDescription(message.content || '')
+                            .setTimestamp(message.createdAt)
+                            .setFooter({ text: `⭐: ${ star.reaction_count }` });
+                        let messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null
+                        if (messageAttachment) embed.setImage(messageAttachment)
+
+                        msg.edit({ embeds: [embed] });
+                    }).catch(err => {
+                        console.error(err);
+                    });
                 }
             }
         }
@@ -126,8 +195,10 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
     member.send('Thank you for joining the Pretendo Network Discord server! Check below for some server information and links', { embed });
 });*/
 
-bot.login(config.token).then(() => {
-    console.log('ready');
+db.connect().then(() => {
+    bot.login(config.token).then(() => {
+        console.log('ready');
+    });
 });
 
 /*bot.api.applications('366454911879086081').guilds('501219567201288194').commands.post({data: {
