@@ -29,13 +29,22 @@ bot.on('messageCreate', message => {
     if (message.author.bot) return;
 });
 
+/**
+ * When reaction is added to message
+ */
 bot.on('messageReactionAdd', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
     if(message.author.bot) return;
     let servers = await db.getServers();
+    /**
+     * Iterate through all servers
+     */
     for (let server of servers) {
+        /**
+         * Check if a message is for a reaction roll
+         */
         if(message.id === server.messageID) {
             for (let reaction of server.reactions) {
                 if(reaction_orig.emoji.name === reaction.emoji) {
@@ -46,9 +55,15 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
                 }
             }
         }
+        /**
+         * Check if a server has a starboard
+         */
         else if(server.starboard_channel !== '' && (server.guildID === message.guild.id)) {
             const reactions = message.reactions.cache;
             if(reaction_orig.emoji.name === '⭐') {
+                /**
+                 * Check if message is already in the starboard
+                 */
                 let star = await db.getStar(message.id, message.guild.id);
                 if(star) {
                     star.reaction_count = reactions.get('⭐').count;
@@ -67,6 +82,9 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
                         console.error(err);
                     });
                 }
+                /**
+                 * Create new starboard message
+                 */
                 else if(reactions.get('⭐').count === server.starboard_count) {
                     let embed = new MessageEmbed()
                         .setColor('#ffd23c')
@@ -100,6 +118,9 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
     if(message.author.bot) return;
     let servers = await db.getServers();
     for (let server of servers) {
+        /**
+         * Check if a message is for a reaction roll
+         */
         if(message.id === server.messageID) {
             for (let reaction of server.reactions) {
                 if(reaction_orig.emoji.name === reaction.emoji) {
@@ -110,9 +131,15 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
                 }
             }
         }
+        /**
+         * Check if a server has a starboard
+         */
         else if(server.starboard_channel !== '' && (server.guildID === message.guild.id)) {
             const reactions = message.reactions.cache;
             if(reaction_orig.emoji.name === '⭐') {
+                /**
+                 * Check if message is already in the starboard
+                 */
                 let star = await db.getStar(message.id, message.guild.id);
                 if(star) {
                     star.reaction_count = star.reaction_count - 1;
