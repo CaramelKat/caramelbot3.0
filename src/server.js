@@ -33,6 +33,7 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
+    if(message.author.bot) return;
     let servers = await db.getServers();
     for (let server of servers) {
         if(message.id === server.messageID) {
@@ -96,6 +97,7 @@ bot.on('messageReactionRemove', async (reaction_orig, user) => {
     const message = !reaction_orig.message.author
         ? await reaction_orig.message.fetch()
         : reaction_orig.message;
+    if(message.author.bot) return;
     let servers = await db.getServers();
     for (let server of servers) {
         if(message.id === server.messageID) {
