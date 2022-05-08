@@ -27,7 +27,24 @@ creator.withServer(
 
 bot.on('messageCreate', message => {
     // Ignore bot messages
-    if (message.author.bot) return;
+    if (message.author.bot || message.author.id !== '234488313690456064') return;
+
+    if(message.content.includes('/activity ')) {
+        let options = ['STREAMING', 'WATCHING', 'CUSTOM_STATUS', 'PLAYING', 'COMPETING'];
+        let status = message.content.replace('/activity', '');
+        if(options.includes(status.substring(0, status.indexOf(' ')))) {
+            console.log(status.substring(status.indexOf(' ')));
+            bot.user.setActivity(status, { type: 'WATCHING' }) // STREAMING, WATCHING, CUSTOM_STATUS, PLAYING, COMPETING
+        }
+    }
+    else if(message.content.includes('/status ')) {
+        let status = message.content.replace('/status ', '');
+        let statusOpt = ["online", 'idle', 'dnd', 'invisible']
+        if(statusOpt.includes(status)) {
+            console.log(status);
+            bot.user.setStatus(status);
+        }
+    }
 });
 
 /**

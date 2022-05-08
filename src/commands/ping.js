@@ -1,27 +1,16 @@
 const { SlashCommand } = require('slash-create');
 
-const allowedRoles = [
-    {
-        name: '937871597379936257',
-        value: '937871597379936257'
-    },
-    {
-        name: 'Stream Ping',
-        value: 'StreamPing',
-    }
-];
-
 class PingCommand extends SlashCommand {
     constructor(bot, creator) {
         super(creator, {
-            name: 'react',
-            description: 'Pong!',
+            name: 'status',
+            description: 'Set\'s the bot status message [only works on owner]',
             options: [
                 {
-                    name: 'role',
-                    description: 'Role name',
+                    name: 'activity',
+                    description: 'activity',
                     required: true,
-                    type: 3,
+                    type: 2,
                 }
             ]
         });

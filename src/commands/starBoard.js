@@ -29,7 +29,7 @@ async function updateStarboard(bot, server, message, reaction_orig) {
         /**
          * Create new starboard message
          */
-        else if(reactions.get('⭐').count === server.starboard_count) {
+        else if(reactions.get('⭐').count >= server.starboard_count) {
             let embed = new MessageEmbed()
                 .setColor('#ffd23c')
                 .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL(), url: message.url })
