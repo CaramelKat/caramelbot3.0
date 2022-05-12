@@ -2,9 +2,12 @@ const db = require("../database");
 const {MessageEmbed} = require("discord.js");
 const {STARBOARD} = require("../models/starboards");
 
-async function updateStarboard(bot, server, message, reaction_orig) {
+async function updateStarboard(bot, server, message, reaction_orig, user) {
     const reactions = message.reactions.cache;
-    if(reaction_orig.emoji.name === '⭐') {
+    let guildMember;
+    if(reaction_orig.emoji.name === '📌' && user !== undefined)
+        guildMember = message.guild.members.cache.get(user.id) || message.guild.members.cache.find(mem => mem.user.id === user.id)
+    if(reaction_orig.emoji.name === '⭐' || reaction_orig.emoji.name === '📌') {
         /**
          * Check if message is already in the starboard
          */
@@ -29,13 +32,16 @@ async function updateStarboard(bot, server, message, reaction_orig) {
         /**
          * Create new starboard message
          */
-        else if(reactions.get('⭐').count >= server.starboard_count) {
+        else if(
+            ((reactions.get('⭐') !== undefined) && (reactions.get('⭐').count >= server.starboard_count)) ||
+            (reaction_orig.emoji.name === '📌' && guildMember.roles.cache.some(role => role.id === server.adminRoleID))) {
+            let starCount = reactions.get('⭐') ? reactions.get('⭐').count : 0
             let embed = new MessageEmbed()
                 .setColor('#ffd23c')
                 .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL(), url: message.url })
                 .setDescription(message.content || '')
                 .setTimestamp(message.createdAt)
-                .setFooter({ text: `⭐: ${ reactions.get('⭐').count }` });
+                .setFooter({ text: `⭐: ${ starCount }` });
             let messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null
             if (messageAttachment) embed.setImage(messageAttachment)
 
@@ -44,7 +50,7 @@ async function updateStarboard(bot, server, message, reaction_orig) {
                 server_id: message.guild.id,
                 original_message_id: message.id,
                 new_message_id: sent.id,
-                reaction_count: reactions.get('⭐').count,
+                reaction_count: starCount,
             }
             const newStar = new STARBOARD(star);
             newStar.save();

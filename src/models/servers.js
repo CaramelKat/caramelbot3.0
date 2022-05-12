@@ -9,6 +9,7 @@ const  ServerSchema = new Schema({
     guildName: String,
     guildID: String,
     messageID: String,
+    adminRoleID: String,
     starboard_channel: String,
     starboard_count: Number,
     reactions: [reaction]

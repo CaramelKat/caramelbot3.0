@@ -70,7 +70,7 @@ bot.on('messageReactionAdd', async (reaction_orig, user) => {
          * Check if a server has a starboard
          */
         else if(server.starboard_channel !== '' && (server.guildID === message.guild.id)) {
-            await starBoard.updateStarboard(bot, server, message, reaction_orig)
+            await starBoard.updateStarboard(bot, server, message, reaction_orig, user)
         }
     }
 });

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Discord OAuth2 App</title>
+</head>
+<body>
+<div id="info">
+    Hoi!
+</div>
+<a id="login" style="display: none;" href="https://discord.com/api/oauth2/authorize?client_id=366454911879086081&redirect_uri=http%3A%2F%2Flocalhost&response_type=token&scope=identify%20guilds">Identify Yourself</a>
+<script>
+    window.onload = () => {
+        const fragment = new URLSearchParams(window.location.hash.slice(1));
+        const [accessToken, tokenType] = [fragment.get('access_token'), fragment.get('token_type')];
+
+        if (!accessToken) {
+            return document.getElementById('login').style.display = 'block';
+        }
+
+        fetch('https://discord.com/api/users/@me', {
+            headers: {
+                authorization: `${tokenType} ${accessToken}`,
+            },
+        })
+            .then(result => result.json())
+            .then(response => {
+                const { username, discriminator, id, avatar } = response;
+                document.getElementById('info').innerText += ` ${username}#${discriminator}`;
+                document.getElementById('info').innerHTML += ` <img src="https://cdn.discordapp.com/avatars/${id}/${avatar}.png">`;
+            }).catch(console.error);
+
+        fetch('https://discord.com/api/users/@me/guilds', {
+            headers: {
+                authorization: `${tokenType} ${accessToken}`,
+            },
+        })
+            .then(result => result.json())
+            .then(guilds => {
+                let id = "519285043550617603"
+                let server = guilds.find(element => element.id === id);
+                fetch(`https://discord.com/api/guilds/${id}/channels`, {
+                    headers: {
+                        authorization: `${tokenType} ${accessToken}`,
+                    },
+                })
+                    .then(result => result.json())
+                    .then(serverInfo => {
+                        console.log(serverInfo);
+                    }).catch(console.error);
+
+                if(server !== undefined) {
+                    fetch(`https://discord.com/api/users/@me/guilds/${id}/member`, {
+                        headers: {
+                            authorization: `${tokenType} ${accessToken}`,
+                        },
+                    })
+                        .then(result => result.json())
+                        .then(user => {
+                            console.log(user);
+                            if(server.owner || user.roles.indexOf("519285500960309289") !== -1) {
+                                alert('allowed to manage bot!')
+                            }
+                        }).catch(console.error);
+                }
+            }).catch(console.error);
+    };
+</script>
+</body>
+</html>
