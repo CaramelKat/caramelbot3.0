@@ -12,6 +12,10 @@ const  ServerSchema = new Schema({
     adminRoleID: String,
     starboard_channel: String,
     starboard_count: Number,
+    twitterFix: {
+        type: Boolean,
+        default: false
+    },
     reactions: [reaction]
 });
 
