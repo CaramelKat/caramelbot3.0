@@ -36,7 +36,7 @@ creator.withServer(
 
 bot.on('messageCreate', async message => {
     // Ignore bot messages
-    if (message.author.bot || message.author.id !== '234488313690456064' || message.webhookId) return;
+    if (message.author.bot || message.webhookId) return;
     let server = await db.getServerByID(message.guild.id);
     if(server && server.twitterFix) {
         if(message.content.includes('https://twitter.com') && message.content.includes('status') && message.embeds[0] === undefined) {
@@ -58,8 +58,7 @@ bot.on('messageCreate', async message => {
                 }).then(user => {
                     channel.createWebhook(message.author.username, {
                         avatar: message.author.avatarURL(),
-                    })
-                        .then(async webhook => {
+                    }).then(async webhook => {
                             let text = "", imageLink;
                             const embed = new MessageEmbed()
                                 .setAuthor({ name: `${user.data.name} (@${user.data.username})`, iconURL: user.data.profile_image_url, url: `https://twiter.com/${user.data.username}` })
@@ -102,21 +101,15 @@ bot.on('messageCreate', async message => {
                                     webhook.delete().then(f => {
                                         message.delete();
                                     });
-
                             })
-                        })
-                        .catch(console.error);
+                        }).catch(console.error);
                 })
-                    .catch((err) => {
-                        console.log(err)
-                    })
-            }).catch((err) => {
-                console.log(err)
-            })
+                    .catch((err) => {console.log(err)})
+            }).catch((err) => {console.log(err)})
         }
     }
 
-    if(message.content.includes('/activity ')) {
+    /*if(message.content.includes('/activity ')) {
         let options = ['STREAMING', 'WATCHING', 'CUSTOM_STATUS', 'PLAYING', 'COMPETING'];
         let status = message.content.replace('/activity', '');
         if(options.includes(status.substring(0, status.indexOf(' ')))) {
@@ -131,7 +124,7 @@ bot.on('messageCreate', async message => {
             console.log(status);
             bot.user.setStatus(status);
         }
-    }
+    }*/
 });
 
 /**
